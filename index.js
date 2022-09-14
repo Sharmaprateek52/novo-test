@@ -16,18 +16,23 @@ db.connect();
 seedData();
 
 app.get('/get-user-data', async (req, res) => {
-    let coordinates = [];
-    coordinates.push(parseFloat(req.query.lat));
-    coordinates.push(parseFloat(req.query.long));
-    let returnFields = {
-        user_id: { $toInt: "$user_id" },
-        name: 1,
-        latlong: 1
+    try {
+        let coordinates = [];
+        coordinates.push(parseFloat(req.query.lat));
+        coordinates.push(parseFloat(req.query.long));
+        let returnFields = {
+            user_id: { $toInt: "$user_id" },
+            name: 1,
+            latlong: 1
+        }
+        let sortBy = { user_id: 1 }
+        let distance = parseInt(req.query.distance * 1000);
+        let data = await findByLocation(User, coordinates, returnFields, sortBy, distance);
+        res.status(200).send({ status: 200, message: "Success", data: data });
+    } catch (err) {
+        console.log("Error in get user data api ", err);
+        return Promise.reject(err);
     }
-    let sortBy = { user_id: 1 }
-    let distance = parseInt(req.query.distance * 1000);
-    let data = await findByLocation(User, coordinates, returnFields, sortBy, distance);
-    res.send(data);
 })
 
 app.listen(3000, () => {
